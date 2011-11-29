@@ -105,9 +105,9 @@
                 t.eq(evt.type, "featureselected",
                      "featureselected: evt.type is proper set.");
                 t.eq(feature.id, features[feature.index].id,
-                     "onSelect called with proper feature (" + feature.index + ")");
+                     "featureselected called with proper feature (" + feature.index + ")");
                 t.eq(feature.tested, feature.test,
-                     "onSelect called only once for feature (" + feature.index + ")");
+                     "featureselected called only once for feature (" + feature.index + ")");
                 t.eq(evt.xy, "foo", "xy from feature handler passed to evt.xy");
             },
 
@@ -116,9 +116,9 @@
                 var feature = evt.feature;
                 feature.tested += 1;
                 t.eq(feature.id, features[feature.index].id,
-                     "onUnselect called with proper feature (" + feature.index + ")");
+                     "featureunselected called with proper feature (" + feature.index + ")");
                 t.eq(feature.tested, feature.test,
-                     "onUnselect called only once for feature (" + feature.index + ")");
+                     "featureunselected called only once for feature (" + feature.index + ")");
             }
         });
 
