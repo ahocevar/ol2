@@ -1299,20 +1299,27 @@ OpenLayers.Map = OpenLayers.Class({
      * evt - {Object} Listener argument of the tile's beforedraw event
      */
     queueTileDraw: function(evt) {
-        var tile = evt.object;
-        if (~OpenLayers.Util.indexOf(this.tileFIFO, tile.layer.getURL(tile.bounds))) {
-            return true;
+        var tile = evt.object,
+            layer = tile.layer,
+            indexOf = OpenLayers.Util.indexOf,
+            draw = false;
+        if (layer.url) {
+            if (~indexOf(this.tileFIFO, layer.getURL(tile.bounds))) {
+                draw = true;
+            } else {
+                if (!~indexOf(this.tileQueue, tile)) {
+                    // queue only if not in queue already
+                    this.tileQueue.push(tile);
+                }
+                if (!this.tileQueueId) {
+                    this.tileQueueId = window.setInterval(
+                        OpenLayers.Function.bind(this.drawTileFromQueue, this),
+                        16
+                    );
+                }
+            }
         }
-        if (!~OpenLayers.Util.indexOf(this.tileQueue, tile)) {
-            // queue only if not in queue already
-            this.tileQueue.push(tile);
-        }
-        if (!this.tileQueueId) {
-            this.tileQueueId = window.setInterval(
-                OpenLayers.Function.bind(this.drawTileFromQueue, this), 16
-            );
-        }
-        return false;
+        return draw;
     },
     
     /**
