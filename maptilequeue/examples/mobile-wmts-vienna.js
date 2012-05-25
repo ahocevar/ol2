@@ -165,7 +165,7 @@ var map;
             ));
             labels = format.createLayer(caps, OpenLayers.Util.applyDefaults(
                 {layer:"beschriftung", requestEncoding:"REST", isBaseLayer: false},
-                OpenLayers.Util.extend({className: 'nofade'}, defaults)
+                OpenLayers.Util.extend({className: "nofade"}, defaults)
             ));
             map.addLayers([fmzk, aerial, labels]);
             zoomToInitialExtent();
@@ -203,7 +203,8 @@ var map;
         layer: "beschriftung",
         style: "normal",
         transitionEffect: null,
-        isBaseLayer: false
+        isBaseLayer: false,
+        className: "nofade"
     },
     defaults));
     map.addLayers([fmzk, aerial, labels]);
