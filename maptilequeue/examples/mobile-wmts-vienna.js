@@ -95,10 +95,9 @@ var map;
         div: "map",
         theme: null,
         projection: "EPSG:3857",
-        units: "m",
-        maxExtent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
-        maxResolution: 156543.0339,
-        numZoomLevels: 20,
+        restrictedExtent: [1799448.394855, 6124949.747770, 1848250.442089, 6162571.828177],
+        maxResolution: 38.21851413574219,
+        numZoomLevels: 8,
         controls: [
             new OpenLayers.Control.Navigation({
                 dragPanOptions: {
@@ -115,7 +114,7 @@ var map;
             moveend: function() {
                 // update anchor for permalinks
                 var ctr = map.getCenter();
-                window.location.hash = "x="+ctr.lon+"&y="+ctr.lat+"&z="+map.getZoom();
+                window.location.hash = "x="+ctr.lon+"&y="+ctr.lat+"&z="+(map.getZoom()+map.baseLayer.zoomOffset);
             }
         }
     });
@@ -134,6 +133,7 @@ var map;
             ctr = extent.getCenterLonLat(),
             zoom = map.getZoomForExtent(extent, true),
             params = OpenLayers.Util.getParameters("?"+window.location.hash.substr(1));
+            params.z -= map.baseLayer.zoomOffset;
         OpenLayers.Util.applyDefaults(params, {x:ctr.lon, y:ctr.lat, z:zoom});
         map.setCenter(new OpenLayers.LonLat(params.x, params.y), params.z);
     }
@@ -177,6 +177,7 @@ var map;
         requestEncoding: "REST",
         matrixSet: "google3857",
         tileFullExtent: extent,
+        zoomOffset: 12,
         attribution: 'Datenquelle: Stadt Wien - <a href="http://data.wien.gv.at">data.wien.gv.at</a>'
     };
     fmzk = new OpenLayers.Layer.WMTS(OpenLayers.Util.applyDefaults({
