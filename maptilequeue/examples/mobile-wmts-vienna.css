@@ -5,6 +5,7 @@ html, body, #map {
 }
 #map {
     cursor: move;
+    background-color: #CCCCCC;
 }
 #title, #tags, #shortdesc {
     display: none;
@@ -32,6 +33,14 @@ div.olControlAttribution {
     font-weight: bold;
     color: #BFEFFF;
     text-decoration: none;
+}
+div.olHandlerBoxZoomBox {
+    border: 2px solid red;
+    position: absolute;
+    background-color: white;
+    opacity: 0.50;
+    font-size: 1px;
+    filter: alpha(opacity=50);
 }
 div.olControlZoomPanel {
     height: 108px;

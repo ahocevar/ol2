@@ -101,16 +101,11 @@ var map;
         numZoomLevels: 20,
         controls: [
             new OpenLayers.Control.Navigation({
-                mouseWheelOptions: {
-                    cumulative: false,
-                    interval: 20
-                },
                 dragPanOptions: {
                     enableKinetic: {
                         deceleration: 0.02
                     }
-                },
-                zoomBoxEnabled: false
+                }
             }),
             new OpenLayers.Control.Attribution(),
             zoomPanel,
