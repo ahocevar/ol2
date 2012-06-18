@@ -46,6 +46,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
         imgTemplate.style.position = "absolute";
         imgTemplate.style.width = tileSize.w + "px";
         imgTemplate.style.height = tileSize.h + "px";
+        imgTemplate.galleryImg = "no";
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
             data[i] = [];
             for (var j=0, jj=gridSize.h; j<jj; ++j) {
