@@ -57,7 +57,9 @@ tl.extend(tl.Map.prototype, {
             this._center = center;
             var mercatorCenter = center.to("EPSG:3857"),
                 //TODO cross-browser
-                style = document.defaultView.getComputedStyle(this.el),
+                style = document.defaultView ?
+                    document.defaultView.getComputedStyle(this.el) :
+                    this.el.currentStyle,
                 mapSize = {
                     w: parseInt(style.width, 10),
                     h: parseInt(style.height, 10)

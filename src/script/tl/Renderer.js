@@ -2,8 +2,6 @@ tl.Renderer = function(map) {
     this.map = map;
     var container = document.createElement("div");
     container.style.position = "absolute";
-    container.style.left = "0";
-    container.style.top = "0";
     map.el.appendChild(container);
     this.div = container;
 };
@@ -12,6 +10,9 @@ tl.extend(tl.Renderer.prototype, {
     div: null,
     left: 0,
     top: 0,
+    dx: 0,
+    dy: 0,
+    animationId: null,
     render: function(data, bounds) {
         this.div.innerHTML = "";
         var resolution = this.map._resolution,
@@ -19,7 +20,6 @@ tl.extend(tl.Renderer.prototype, {
             layerData, tile, offset;
         for (var l=0, ll=data.length; l<ll; ++l) {
             layerData = data[l];
-            // TODO coordinate range!
             offset = {
                 x: layerData.insertAt.x - bounds.left,
                 y: bounds.top + layerData.insertAt.y
@@ -33,12 +33,26 @@ tl.extend(tl.Renderer.prototype, {
                 }
             }
         }
+        tl.setStyle(this.div,
+            {transform: tl.hasTransform3d ? "translate3d(0,0,0)" : "translate(0,0)"},
+            {left: "0", top: "0"}
+        );
         this.div.appendChild(fragment);
     },
     moveByPx: function(dx, dy) {
-        this.left += dx;
-        this.top += dy;
-        this.div.style.left = this.left + "px";
-        this.div.style.top = this.top + "px";
+        var me = this;
+        me.left += dx;
+        me.top += dy;
+        if (!me.animationId) {
+            me.animationId = tl.requestAnimationFrame(function() {
+                tl.setStyle(me.div,
+                    {transform: tl.hasTransform3d ?
+                        "translate3d(" + me.left + "px," + me.top + "px,0)" :
+                        "translate(" + me.left + "px," + me.top + "px)"},
+                    {left: me.left + "px", top: me.top + "px"}
+                );
+                me.animationId = null;  
+            });
+        }
     }
 });

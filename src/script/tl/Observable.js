@@ -3,12 +3,15 @@ tl.Observable = function(cfg) {
     if (typeof el == "string") {
         el = document.getElementById(el);
     }
-    var mouseEvents = [], i, sequence;
+    var mouseEvents = [], i, sequence, me = this;
+    function handle() {
+        me.handle.apply(me, arguments);
+    }
     for (i=this.sequences.length-1; i>=0; --i) {
         sequence = this.sequences[i];
         for (var s in sequence) {
             for (var t in sequence[s]) {
-                el["on" + t] = this.handle.bind(this);
+                el["on" + t] = handle;
             }
         }
     }
@@ -26,14 +29,20 @@ tl.extend(tl.Observable.prototype, {
         });
     },
     handle: function(evt) {
+        evt = evt || window.event;
         var sequences = this.sequences, sequence, type = evt.type, part;
         for (var i=0, ii=sequences.length; i<ii; ++i) {
             sequence = sequences[i];
             for (var p in sequence) {
                 part = sequence[p];
                 if (part[type]) {
+                    evt.object = this;
                     if (part[type](evt)) {
-                        evt.preventDefault();
+                        if (evt.preventDefault) {
+                            evt.preventDefault();
+                        } else {
+                            evt.returnValue = false;
+                        }
                         this.fire.call(this, p, evt);
                     }
                 }

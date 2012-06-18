@@ -7,23 +7,27 @@ tl.sequence = {
                 evt.dx = 0;
                 evt.dy = 0;
                 previous = evt;
-                evt.stopPropagation();
+                if (evt.stopPropagation) {
+                    evt.stopPropagation();
+                } else {
+                    evt.cancelBubble = true;
+                }
                 return true;
             }
         }
         
         function drag(evt) {
             if (previous) {
-                evt.dx = evt.clientX - previous.clientX;
-                evt.dy = evt.clientY - previous.clientY;
-                previous = evt;
+                evt.dx = evt.screenX - previous.screenX;
+                evt.dy = evt.screenY - previous.screenY;
+                previous = {screenX: evt.screenX, screenY: evt.screenY};
                 return true;
             }
         }
         
         function dragend(evt) {
             if (previous) {
-                previous = false;
+                previous = null;
                 return true;
             }
         }
@@ -50,8 +54,9 @@ tl.sequence = {
         return {
             dblclick: {
                 mouseup: function(evt) {
-                    if (!previous || Date.now() - previous > delay) {
-                        previous = Date.now();
+                    var now = new Date().getTime();
+                    if (!previous || now - previous > delay) {
+                        previous = now;
                     } else {
                         previous = false;
                         return true;
