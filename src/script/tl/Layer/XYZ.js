@@ -37,8 +37,8 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 y: tileDelta.y * insertIndex.y - me.tileOrigin.y
             },
             gridSize = {
-                w: Math.ceil((bounds.right - bounds.left) / tileDelta.x),
-                h: Math.ceil((bounds.top - bounds.bottom) / tileDelta.y)
+                w: Math.round(1 + (bounds.right - bounds.left) / tileDelta.x),
+                h: Math.round(1 + (bounds.top - bounds.bottom) / tileDelta.y)
             },
             data = [],
             img, z = this.zoomForResolution(resolution),
