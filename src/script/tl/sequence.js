@@ -1,34 +1,39 @@
 tl.sequence = {
     "drag": function(options) {
-        var previous = null;
+        var previous, dragFn, dragendFn;
         
+        function drag(evt) {
+            evt.dx = evt.screenX - previous.screenX;
+            evt.dy = evt.screenY - previous.screenY;
+            previous = {screenX: evt.screenX, screenY: evt.screenY};
+            this.fire('drag', evt);
+        }
+        
+        function dragend (evt) {
+            if (previous) {
+                tl.removeEventListener(document, 'mousemove', dragFn);
+                tl.removeEventListener(document, 'touchmove', dragFn);
+                tl.removeEventListener(document, 'mouseup', dragendFn);
+                tl.removeEventListener(document, 'touchend', dragendFn);
+                dragType = undefined;
+                previous = undefined;
+                this.fire('dragend', evt);
+            }
+        }
+    
         function dragstart(evt) {
             if (!previous) {
                 evt.dx = 0;
                 evt.dy = 0;
                 previous = evt;
-                if (evt.stopPropagation) {
-                    evt.stopPropagation();
-                } else {
-                    evt.cancelBubble = true;
-                }
-                return true;
-            }
-        }
-        
-        function drag(evt) {
-            if (previous) {
-                evt.dx = evt.screenX - previous.screenX;
-                evt.dy = evt.screenY - previous.screenY;
-                previous = {screenX: evt.screenX, screenY: evt.screenY};
-                return true;
-            }
-        }
-        
-        function dragend(evt) {
-            if (previous) {
-                previous = null;
-                return true;
+                dragFn = tl.bind(drag, this);
+                dragendFn = tl.bind(dragend, this);
+                tl.addEventListener(document, 'mousemove', dragFn);
+                tl.addEventListener(document, 'touchmove', dragFn);
+                tl.addEventListener(document, 'mouseup', dragendFn);
+                tl.addEventListener(document, 'touchend', dragendFn);
+                tl.preventDefault(evt);
+                this.fire('dragstart', evt);
             }
         }
         
@@ -36,15 +41,8 @@ tl.sequence = {
             dragstart: {
                 mousedown: dragstart,
                 touchstart: dragstart 
-            },
-            drag: {
-                mousemove: drag,
-                touchmove: drag
-            },
-            dragend: {
-                mouseup: dragend,
-                touchend: dragend
             }
+            // other listeners for this sequence are registered in dragstart
         };
     },
     "dblclick": function(options) {
@@ -59,7 +57,7 @@ tl.sequence = {
                         previous = now;
                     } else {
                         previous = false;
-                        return true;
+                        this.fire('dblclick', evt);
                     }
                 }
             }

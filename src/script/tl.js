@@ -1,5 +1,4 @@
 window.tl = {
-    hasTransform3d: /gecko/i.test(navigator.userAgent),
     inherit: function(Class, Superclass) {
         var F = function() {};
         F.prototype = Superclass.prototype;
@@ -12,6 +11,41 @@ window.tl = {
             }
         }
     },
+    bind: function(fn, scope) {
+        if (Function.prototype.bind) {
+            return fn.bind(scope);
+        } else {
+            return function() { fn.apply(scope, arguments); };
+        }
+    },
+    addEventListener: function(element, type, listener) {
+        if (element.addEventListener) {
+            element.addEventListener(type, listener, false);
+        } else if (element.attachEvent) {
+            element.attachEvent("on"+type, listener);
+        }
+    },
+    removeEventListener: function(element, type, listener) {
+        if (element.removeEventListener) {
+            element.removeEventListener(type, listener, false);
+        } else if (element.detachEvent) {
+            element.detachEvent("on"+type, listener);
+        }
+    },
+    preventDefault: function(evt) {
+        if (evt.preventDefault) {
+            evt.preventDefault();
+        } else {
+            evt.returnValue = false;
+        }
+    },
+    stopPropagation: function(evt) {
+        if (evt.stopPropagation) {
+            evt.stopPropagation();
+        } else {
+            evt.cancelBubble = true;
+        }
+    },
     requestAnimationFrame: function(fn) {
         return (window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
@@ -20,6 +54,7 @@ window.tl = {
             window.msRequestAnimationFrame ||
             window.setTimeout)(fn, 16);
     },
+    hasTransform3d: /gecko/i.test(navigator.userAgent),
     setStyle: function(elem, style, fallback) {
         var supported, apply = {};
         for (var s in style) {
