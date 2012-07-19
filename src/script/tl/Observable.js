@@ -6,10 +6,8 @@ tl.Observable = function(cfg) {
     var i, sequence;
     for (i=this.sequences.length-1; i>=0; --i) {
         sequence = this.sequences[i];
-        for (var p in sequence) {
-            for (var t in sequence[p]) {
-                tl.addEventListener(el, t, tl.bind(sequence[p][t], this));
-            }
+        for (var t in sequence) {
+            tl.addEventListener(el, t, tl.bind(sequence[t], this));
         }
     }
     this.listeners = {};

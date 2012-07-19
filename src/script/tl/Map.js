@@ -8,7 +8,8 @@ tl.Map = function(cfg) {
     div.className = "tl unselectable";
     div.style.overflow = "hidden";
     div.style.position = "relative";
-    div.onselectstart = "return false;";
+    // prevent default select and drag-drop
+    div.onmousedown = tl.preventDefault;
     me.on("dragstart", function() {
         me.el.className += " drag";
     }, me);
@@ -40,7 +41,7 @@ tl.extend(tl.Map.prototype, {
         0.07464553542435169
     ],
     _resolution: null,
-    sequences: [tl.sequence.drag(), tl.sequence.dblclick()],
+    sequences: [tl.sequence.dragclick()],
     add: function(item) {
         item.setMap(this);
         if (item instanceof tl.Layer) {
