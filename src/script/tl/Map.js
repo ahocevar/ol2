@@ -19,9 +19,6 @@ tl.Map = function(cfg) {
     me.on("dragend", function() {
         me.el.className = me.el.className.replace(" drag", "");
     }, this);
-    me.on("dblclick", function() {
-        alert("double");
-    });
 };
 tl.inherit(tl.Map, tl.Observable);
 tl.extend(tl.Map.prototype, {

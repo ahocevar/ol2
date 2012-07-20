@@ -21,7 +21,6 @@ tl.sequence = {
                 tl.removeEventListener(document, 'touchend', dragendFn);
                 dragType = undefined;
                 previous = undefined;
-                dragged = undefined;
                 this.fire('dragend', evt);
             }
         }
@@ -30,6 +29,7 @@ tl.sequence = {
             if (!previous) {
                 var current = evt.touches ? evt.touches[0] : evt;
                 previous = {clientX: current.clientX, clientY: current.clientY};
+                dragged = undefined;
                 dragFn = tl.bind(drag, this);
                 dragendFn = tl.bind(dragend, this);
                 tl.addEventListener(document, 'mousemove', dragFn);
@@ -51,12 +51,19 @@ tl.sequence = {
                 }
             }
         }
+        
+        function click(evt) {
+            if (!dragged) {
+                this.fire('click', evt);
+            }
+        }
 
         return {
             mousedown: dragstart,
             touchstart: dragstart,
             mouseup: dblclick,
-            touchend: dblclick
+            touchend: dblclick,
+            click: click
         };
     }
 };
