@@ -37,16 +37,17 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 y: tileDelta.y * insertIndex.y - me.tileOrigin.y
             },
             gridSize = {
-                w: Math.round(1 + (bounds.right - bounds.left) / tileDelta.x),
-                h: Math.round(1 + (bounds.top - bounds.bottom) / tileDelta.y)
+                w: Math.round((bounds.right - bounds.left) / tileDelta.x +
+                    (bounds.left / tileDelta.x !== ((bounds.left / tileDelta.x) | 0))),
+                h: Math.round((bounds.top - bounds.bottom) / tileDelta.y +
+                    (bounds.top / tileDelta.x !== ((bounds.top / tileDelta.y) | 0)))
             },
             data = [],
-            img, z = this.zoomForResolution(resolution),
-            imgTemplate = document.createElement("img");
-        imgTemplate.style.position = "absolute";
+            z = this.zoomForResolution(resolution),
+            imgTemplate = tl.Layer.XYZ.createImage(),
+            img;
         imgTemplate.style.width = tileSize.w + "px";
-        imgTemplate.style.height = tileSize.h + "px";
-        imgTemplate.galleryImg = "no";
+        imgTemplate.style.height = tileSize.h + "px";        
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
             data[i] = [];
             for (var j=0, jj=gridSize.h; j<jj; ++j) {
@@ -78,3 +79,12 @@ tl.extend(tl.Layer.XYZ.prototype, {
         return i+1;
     }
 });
+tl.Layer.XYZ.createImage = (function() {
+    var img = document.createElement("img");
+    img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    img.style.position = "absolute";
+    img.galleryImg = "no";
+    return function() {
+        return img.cloneNode(false);
+    };
+})();
