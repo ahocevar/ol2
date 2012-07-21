@@ -9,7 +9,7 @@ tl.Map = function(cfg) {
     div.style.overflow = "hidden";
     div.style.position = "relative";
     // prevent default select and drag-drop
-    div.onmousedown = tl.preventDefault;
+    tl.addEventListener(div, 'mousedown', tl.preventDefault);
     me.on("dragstart", function() {
         me.el.className += " drag";
     }, me);
@@ -22,7 +22,8 @@ tl.Map = function(cfg) {
 };
 tl.inherit(tl.Map, tl.Observable);
 tl.extend(tl.Map.prototype, {
-    _zoom: 0,
+    projection: 'EPSG:3857',
+    _zoom: null,
     _center: null,
     _layers: null,
     _renderer: null,
@@ -53,8 +54,7 @@ tl.extend(tl.Map.prototype, {
                 center = new tl.LatLng(center);
             }
             this._center = center;
-            var mercatorCenter = center.to("EPSG:3857"),
-                //TODO cross-browser
+            var projectedCenter = center.to(this.projection),
                 style = document.defaultView ?
                     document.defaultView.getComputedStyle(this.el) :
                     this.el.currentStyle,
@@ -64,16 +64,18 @@ tl.extend(tl.Map.prototype, {
                 },
                 resolution = this._resolution,
                 bounds = {
-                    left: mercatorCenter.x - mapSize.w * resolution / 2,
-                    top: mercatorCenter.y + mapSize.h * resolution / 2,
-                    right: mercatorCenter.x + mapSize.w * resolution / 2,
-                    bottom: mercatorCenter.y - mapSize.h * resolution / 2
+                    left: projectedCenter.x - mapSize.w * resolution / 2,
+                    top: projectedCenter.y + mapSize.h * resolution / 2,
+                    right: projectedCenter.x + mapSize.w * resolution / 2,
+                    bottom: projectedCenter.y - mapSize.h * resolution / 2
                 },
                 data = [];
-            for (var i=0, ii=this._layers.length; i<ii; ++i) {
-                data.push(this._layers[i].getData(bounds, resolution));
+            if (this._zoom !== null) {
+                for (var i=0, ii=this._layers.length; i<ii; ++i) {
+                    data.push(this._layers[i].getData(bounds, resolution));
+                }
+                this._renderer.render(data, bounds);
             }
-            this._renderer.render(data, bounds);
             return this;
         }
     },
