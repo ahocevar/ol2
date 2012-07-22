@@ -3,7 +3,7 @@ tl.Map = function(cfg) {
     tl.Observable.prototype.constructor.apply(this, arguments);
     me._resolution = me._resolutions[0];
     me._layers = [];
-    me._renderer = cfg.Renderer ? new cfg.Renderer(me) : new tl.Renderer(me);
+    me._renderer = cfg.Renderer ? new cfg.Renderer(me) : new tl.Renderer(me.el);
     var div = this.el;
     div.className = "tl unselectable";
     div.style.overflow = "hidden";
@@ -14,7 +14,10 @@ tl.Map = function(cfg) {
         me.el.className += " drag";
     }, me);
     me.on("drag", function(type, evt) {
-        me._renderer.moveByPx(evt.dx, evt.dy);
+        me.center({
+            x: me._center.x - evt.dx * me._resolution,
+            y: me._center.y + evt.dy * me._resolution
+        });
     });
     me.on("dragend", function() {
         me.el.className = me.el.className.replace(" drag", "");
@@ -39,6 +42,7 @@ tl.extend(tl.Map.prototype, {
         0.07464553542435169
     ],
     _resolution: null,
+    _size: null,
     sequences: [tl.sequence.dragclick()],
     add: function(item) {
         item.setMap(this);
@@ -46,35 +50,49 @@ tl.extend(tl.Map.prototype, {
             this._layers.push(item);
         }
     },
+    size: function() {
+        if (!this._size) {
+            var style = document.defaultView ?
+                document.defaultView.getComputedStyle(this.el) :
+                this.el.currentStyle;
+            this._size = {
+                w: parseInt(style.width, 10),
+                h: parseInt(style.height, 10)
+            };
+        }
+        return this._size;
+    },
+    bounds: function() {
+        var center = this.center(),
+            mapSize = this.size(),
+            resolution = this._resolution;
+        return {
+            minX: center.x - mapSize.w * resolution / 2,
+            maxY: center.y + mapSize.h * resolution / 2,
+            maxX: center.x + mapSize.w * resolution / 2,
+            minY: center.y - mapSize.h * resolution / 2
+        };
+    },
     center: function(center) {
         if (!arguments.length) {
             return this._center;
         } else {
-            if (!(center instanceof tl.LatLng)) {
+            if (center instanceof Array) {
                 center = new tl.LatLng(center);
             }
-            this._center = center;
-            var projectedCenter = center.to(this.projection),
-                style = document.defaultView ?
-                    document.defaultView.getComputedStyle(this.el) :
-                    this.el.currentStyle,
-                mapSize = {
-                    w: parseInt(style.width, 10),
-                    h: parseInt(style.height, 10)
-                },
+            if (center instanceof tl.LatLng) {
+                this._center = center.to(this.projection);
+            } else {
+                this._center = center;
+            }
+            var bounds = this.bounds(),
                 resolution = this._resolution,
-                bounds = {
-                    left: projectedCenter.x - mapSize.w * resolution / 2,
-                    top: projectedCenter.y + mapSize.h * resolution / 2,
-                    right: projectedCenter.x + mapSize.w * resolution / 2,
-                    bottom: projectedCenter.y - mapSize.h * resolution / 2
-                },
                 data = [];
             if (this._zoom !== null) {
                 for (var i=0, ii=this._layers.length; i<ii; ++i) {
                     data.push(this._layers[i].getData(bounds, resolution));
                 }
-                this._renderer.render(data, bounds);
+                this._renderer.render(data, bounds, resolution);
             }
             return this;
         }

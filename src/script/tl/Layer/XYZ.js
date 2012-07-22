@@ -1,6 +1,8 @@
 tl.Layer.XYZ = function(config) {
     tl.Layer.prototype.constructor.apply(this, arguments);
     this.url = config.url;
+    this.imgCache = {};
+    this.imgFIFO = [];
 };
 tl.inherit(tl.Layer.XYZ, tl.Layer);
 tl.extend(tl.Layer.XYZ.prototype, {
@@ -16,7 +18,6 @@ tl.extend(tl.Layer.XYZ.prototype, {
     ],
     tileSize: {w: 256, h: 256},
     tileOrigin: {x: -20037508.34, y: 20037508.34},
-    url: null,
     getData: function(bounds, resolution) {
         var me = this,
             stretch = me.resolutions[me.zoomForResolution(resolution)] / resolution,
@@ -29,34 +30,44 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 y: me.tileSize.h * resolution
             },
             insertIndex = {
-                x: Math.floor((bounds.left - me.tileOrigin.x) / tileDelta.x),
-                y: Math.floor((me.tileOrigin.y - bounds.top) / tileDelta.y)
+                x: Math.floor((bounds.minX - me.tileOrigin.x) / tileDelta.x),
+                y: Math.floor((me.tileOrigin.y - bounds.maxY) / tileDelta.y)
             },
             insertAt = {
                 x: me.tileOrigin.x + tileDelta.x * insertIndex.x,
                 y: tileDelta.y * insertIndex.y - me.tileOrigin.y
             },
             gridSize = {
-                w: Math.round((bounds.right - bounds.left) / tileDelta.x +
-                    (bounds.left / tileDelta.x !== ((bounds.left / tileDelta.x) | 0))),
-                h: Math.round((bounds.top - bounds.bottom) / tileDelta.y +
-                    (bounds.top / tileDelta.x !== ((bounds.top / tileDelta.y) | 0)))
+                w: Math.round((bounds.maxX - bounds.minX) / tileDelta.x +
+                    (bounds.minX / tileDelta.x !== ((bounds.minX / tileDelta.x) | 0))),
+                h: Math.round((bounds.maxY - bounds.minY) / tileDelta.y +
+                    (bounds.maxY / tileDelta.x !== ((bounds.maxY / tileDelta.y) | 0)))
             },
             data = [],
+            img, url,
             z = this.zoomForResolution(resolution),
-            imgTemplate = tl.Layer.XYZ.createImage(),
-            img;
+            imgTemplate = tl.Layer.XYZ.createImage();
         imgTemplate.style.width = tileSize.w + "px";
         imgTemplate.style.height = tileSize.h + "px";        
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
             data[i] = [];
             for (var j=0, jj=gridSize.h; j<jj; ++j) {
-                img = imgTemplate.cloneNode(false);
-                img.src = this.url
+                url = this.url
                     .replace("{x}", insertIndex.x + i)
                     .replace("{y}", insertIndex.y + j)
                     .replace("{z}", z);
-                data[i][j] = img;
+                if (~tl.indexOf(this.imgFIFO, url)) {
+                    data[i][j] = this.imgCache[url];
+                } else {
+                    img = imgTemplate.cloneNode(false);
+                    img.src = url;
+                    data[i][j] = img;
+                    this.imgFIFO.push(url);
+                    this.imgCache[url] = img;
+                    if (this.imgFIFO.length > 100) {
+                        delete this.imgCache[this.imgFIFO.shift()];
+                    }
+                }
             }
         }
         return {

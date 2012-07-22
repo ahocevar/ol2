@@ -18,6 +18,18 @@ window.tl = {
             return function() { fn.apply(scope, arguments); };
         }
     },
+    indexOf: function(array, obj) {
+        if (Array.prototype.indexOf) {
+            return array.indexOf(obj);
+        } else {
+            for (var i=array.length-1; i>=0; --i) {
+                if (array[i] === obj) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    },
     addEventListener: function(element, type, listener) {
         if (element.addEventListener) {
             element.addEventListener(type, listener, false);
@@ -53,6 +65,14 @@ window.tl = {
             window.oRequestAnimationFrame ||
             window.msRequestAnimationFrame ||
             window.setTimeout)(fn, 16);
+    },
+    cancelAnimationFrame: function(id) {
+        (window.cancelAnimationFrame ||
+            window.webkitCancelAnimationFrame ||
+            window.mozCancelAnimationFrame ||
+            window.oCancelAnimationFrame ||
+            window.msCancelAnimationFrame ||
+            window.clearTimeout)(id);
     },
     hasTransform3d: /gecko/i.test(navigator.userAgent),
     setStyle: function(elem, style, fallback) {
