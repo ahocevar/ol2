@@ -35,13 +35,13 @@ tl.extend(tl.Layer.XYZ.prototype, {
             },
             insertAt = {
                 x: me.tileOrigin.x + tileDelta.x * insertIndex.x,
-                y: tileDelta.y * insertIndex.y - me.tileOrigin.y
+                y: me.tileOrigin.y - tileDelta.y * insertIndex.y
             },
             gridSize = {
                 w: Math.round((bounds.maxX - bounds.minX) / tileDelta.x +
-                    (bounds.minX / tileDelta.x !== ((bounds.minX / tileDelta.x) | 0))),
+                    (insertAt.x < bounds.minX)),
                 h: Math.round((bounds.maxY - bounds.minY) / tileDelta.y +
-                    (bounds.maxY / tileDelta.x !== ((bounds.maxY / tileDelta.y) | 0)))
+                    (bounds.maxY < insertAt.y))
             },
             data = [],
             img, url,

@@ -40,7 +40,7 @@ tl.extend(tl.Renderer.prototype, {
                 layerData = data[l];
                 offset = {
                     x: layerData.insertAt.x - bounds.minX - me.left * resolution,
-                    y: bounds.maxY + layerData.insertAt.y - me.top * resolution
+                    y: bounds.maxY - layerData.insertAt.y - me.top * resolution
                 };
                 for (var i=0, ii=layerData.data.length; i<ii; ++i) {
                     for (var j=0, jj=layerData.data[i].length; j<jj; ++j) {
