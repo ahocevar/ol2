@@ -5,6 +5,7 @@
         "tl.js",
         "tl/sequence.js",
         "tl/Observable.js",
+        "tl/CRS.js",
         "tl/LatLng.js",
         "tl/Map.js",
         "tl/Renderer.js",
