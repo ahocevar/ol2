@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="../src/script/loader.js"></script>
+    <link rel="stylesheet" href="../src/theme/default.css" type="text/css">
+    <style type="text/css">
+    #map {
+        width: 512px;
+        height: 512px;
+    }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+    var map = new tl.Map("map");
+    var layer = new tl.Layer.XYZ({
+        url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    });
+    map.add(layer);
+    map.zoom(13).center([48.2084, 16.3725]);
+    </script>
+</body>
+</html>
