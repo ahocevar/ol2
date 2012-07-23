@@ -20,14 +20,16 @@ tl.extend(tl.Layer.XYZ.prototype, {
     tileOrigin: {x: -20037508.34, y: 20037508.34},
     getData: function(bounds, resolution) {
         var me = this,
-            stretch = me.resolutions[me.zoomForResolution(resolution)] / resolution,
+            zoom = me.zoomForResolution(resolution),
+            tileResolution = me.resolutions[zoom],
+            stretch = tileResolution / resolution,
             tileSize = {
                 w: me.tileSize.w * stretch,
                 h: me.tileSize.h * stretch
             },
             tileDelta = {
-                x: me.tileSize.w * resolution,
-                y: me.tileSize.h * resolution
+                x: me.tileSize.w * tileResolution,
+                y: me.tileSize.h * tileResolution
             },
             insertIndex = {
                 x: Math.floor((bounds.minX - me.tileOrigin.x) / tileDelta.x),
@@ -38,15 +40,13 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 y: me.tileOrigin.y - tileDelta.y * insertIndex.y
             },
             gridSize = {
-                w: Math.round((bounds.maxX - bounds.minX) / tileDelta.x +
-                    (insertAt.x < bounds.minX)),
-                h: Math.round((bounds.maxY - bounds.minY) / tileDelta.y +
-                    (bounds.maxY < insertAt.y))
+                w: Math.ceil((bounds.maxX - insertAt.x) / resolution / tileSize.w),
+                h: Math.ceil((insertAt.y - bounds.minY) / resolution / tileSize.h)
             },
             data = [],
             img, url,
-            z = this.zoomForResolution(resolution),
             imgTemplate = tl.Layer.XYZ.createImage();
+        imgTemplate._stretch = stretch;
         imgTemplate.style.width = tileSize.w + "px";
         imgTemplate.style.height = tileSize.h + "px";        
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
@@ -55,7 +55,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 url = this.url
                     .replace("{x}", insertIndex.x + i)
                     .replace("{y}", insertIndex.y + j)
-                    .replace("{z}", z);
+                    .replace("{z}", zoom);
                 if (~tl.indexOf(this.imgFIFO, url)) {
                     data[i][j] = this.imgCache[url];
                 } else {
@@ -73,7 +73,9 @@ tl.extend(tl.Layer.XYZ.prototype, {
         return {
             data: data,
             insertAt: insertAt,
-            tileDelta: tileDelta
+            tileDelta: tileDelta,
+            tileSize: me.tileSize,
+            stretch: stretch
         };
     },
     zoomForResolution: function(resolution) {

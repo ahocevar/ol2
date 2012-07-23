@@ -19,7 +19,7 @@ tl.extend(tl.Renderer.prototype, {
         }
         me.animationId = tl.requestAnimationFrame(function() {        
             var fragment = document.createDocumentFragment(),
-                layerData, tile, offset,
+                layerData, tile, offset, stretch,
                 keep = [];
             if (resolution !== me.resolution) {
                 me.resolution = resolution;
@@ -38,6 +38,7 @@ tl.extend(tl.Renderer.prototype, {
             me.bounds = bounds;
             for (var l=0, ll=data.length; l<ll; ++l) {
                 layerData = data[l];
+                stretch = layerData.stretch;
                 offset = {
                     x: layerData.insertAt.x - bounds.minX - me.left * resolution,
                     y: bounds.maxY - layerData.insertAt.y - me.top * resolution
@@ -48,9 +49,14 @@ tl.extend(tl.Renderer.prototype, {
                         if (!~tl.indexOf(me.renderedTiles, tile)) {
                             tile.src = tile._src;
                             tile.removeAttribute('_src');
-                            tile.style.left = ((offset.x + i * layerData.tileDelta.x) / resolution) + "px";
-                            tile.style.top = ((offset.y + j * layerData.tileDelta.y) / resolution) + "px";
                             fragment.appendChild(tile);
+                        }
+                        if (stretch !== tile._stretch) {
+                            tile._stretch = stretch;
+                            tile.style.width = (layerData.tileSize.w * stretch) + 'px';
+                            tile.style.height = (layerData.tileSize.h * stretch) + 'px';
+                            tile.style.left = ((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
+                            tile.style.top = ((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
                         }
                         keep.push(tile);
                     }
