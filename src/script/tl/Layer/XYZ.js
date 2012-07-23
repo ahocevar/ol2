@@ -60,7 +60,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
                     data[i][j] = this.imgCache[url];
                 } else {
                     img = imgTemplate.cloneNode(false);
-                    img.src = url;
+                    img._src = url;
                     data[i][j] = img;
                     this.imgFIFO.push(url);
                     this.imgCache[url] = img;

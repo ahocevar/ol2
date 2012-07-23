@@ -46,6 +46,8 @@ tl.extend(tl.Renderer.prototype, {
                     for (var j=0, jj=layerData.data[i].length; j<jj; ++j) {
                         tile = layerData.data[i][j];
                         if (!~tl.indexOf(me.renderedTiles, tile)) {
+                            tile.src = tile._src;
+                            tile.removeAttribute('_src');
                             tile.style.left = ((offset.x + i * layerData.tileDelta.x) / resolution) + "px";
                             tile.style.top = ((offset.y + j * layerData.tileDelta.y) / resolution) + "px";
                             fragment.appendChild(tile);
