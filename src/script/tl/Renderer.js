@@ -20,6 +20,7 @@ tl.extend(tl.Renderer.prototype, {
         me.animationId = tl.requestAnimationFrame(function() {        
             var fragment = document.createDocumentFragment(),
                 layerData, tile, offset, stretch,
+                reposition = false,
                 keep = [];
             if (resolution !== me.resolution) {
                 me.resolution = resolution;
@@ -50,13 +51,18 @@ tl.extend(tl.Renderer.prototype, {
                             tile.src = tile._src;
                             tile.removeAttribute('_src');
                             fragment.appendChild(tile);
+                            reposition = true;
                         }
                         if (stretch !== tile._stretch) {
                             tile._stretch = stretch;
-                            tile.style.width = (layerData.tileSize.w * stretch) + 'px';
-                            tile.style.height = (layerData.tileSize.h * stretch) + 'px';
-                            tile.style.left = ((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
-                            tile.style.top = ((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
+                            reposition = true;
+                            tile.style.width = Math.ceil(layerData.tileSize.w * stretch) + 'px';
+                            tile.style.height = Math.ceil(layerData.tileSize.h * stretch) + 'px';
+                        }
+                        if (reposition) {
+                            reposition = false;
+                            tile.style.left = Math.round((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
+                            tile.style.top = Math.round((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
                         }
                         keep.push(tile);
                     }
