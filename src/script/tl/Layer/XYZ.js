@@ -1,8 +1,8 @@
 tl.Layer.XYZ = function(config) {
     tl.Layer.prototype.constructor.apply(this, arguments);
     this.url = config.url;
-    this.imgCache = {};
-    this.imgFIFO = [];
+    this.tileCache = {};
+    this.tileFIFO = [];
 };
 tl.inherit(tl.Layer.XYZ, tl.Layer);
 tl.extend(tl.Layer.XYZ.prototype, {
@@ -44,11 +44,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 h: Math.ceil((insertAt.y - bounds.minY) / resolution / tileSize.h)
             },
             data = [],
-            img, url,
-            imgTemplate = tl.Layer.XYZ.createImage();
-        imgTemplate._stretch = stretch;
-        imgTemplate.style.width = tileSize.w + "px";
-        imgTemplate.style.height = tileSize.h + "px";        
+            tile, url;
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
             data[i] = [];
             for (var j=0, jj=gridSize.h; j<jj; ++j) {
@@ -56,16 +52,18 @@ tl.extend(tl.Layer.XYZ.prototype, {
                     .replace("{x}", insertIndex.x + i)
                     .replace("{y}", insertIndex.y + j)
                     .replace("{z}", zoom);
-                if (~tl.indexOf(this.imgFIFO, url)) {
-                    data[i][j] = this.imgCache[url];
+                if (~tl.indexOf(this.tileFIFO, url)) {
+                    data[i][j] = this.tileCache[url];
                 } else {
-                    img = imgTemplate.cloneNode(false);
-                    img._src = url;
-                    data[i][j] = img;
-                    this.imgFIFO.push(url);
-                    this.imgCache[url] = img;
-                    if (this.imgFIFO.length > 100) {
-                        delete this.imgCache[this.imgFIFO.shift()];
+                    tile = {
+                        image: tl.Layer.XYZ.createImage(),
+                        url: url
+                    };
+                    data[i][j] = tile;
+                    this.tileFIFO.push(url);
+                    this.tileCache[url] = tile;
+                    if (this.tileFIFO.length > 100) {
+                        delete this.tileCache[this.tileFIFO.shift()];
                     }
                 }
             }

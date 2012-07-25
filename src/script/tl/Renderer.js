@@ -19,7 +19,7 @@ tl.extend(tl.Renderer.prototype, {
         }
         me.animationId = tl.requestAnimationFrame(function() {        
             var fragment = document.createDocumentFragment(),
-                layerData, tile, offset, stretch,
+                layerData, tile, image, offset, stretch,
                 reposition = false,
                 keep = [];
             if (resolution !== me.resolution) {
@@ -47,22 +47,22 @@ tl.extend(tl.Renderer.prototype, {
                 for (var i=0, ii=layerData.data.length; i<ii; ++i) {
                     for (var j=0, jj=layerData.data[i].length; j<jj; ++j) {
                         tile = layerData.data[i][j];
+                        image = tile.image;
                         if (!~tl.indexOf(me.renderedTiles, tile)) {
-                            tile.src = tile._src;
-                            tile.removeAttribute('_src');
-                            fragment.appendChild(tile);
+                            image.src = tile.url;
+                            fragment.appendChild(image);
                             reposition = true;
                         }
-                        if (stretch !== tile._stretch) {
-                            tile._stretch = stretch;
+                        if (stretch !== tile.stretch) {
+                            tile.stretch = stretch;
                             reposition = true;
-                            tile.style.width = Math.ceil(layerData.tileSize.w * stretch) + 'px';
-                            tile.style.height = Math.ceil(layerData.tileSize.h * stretch) + 'px';
+                            image.style.width = Math.ceil(layerData.tileSize.w * stretch) + 'px';
+                            image.style.height = Math.ceil(layerData.tileSize.h * stretch) + 'px';
                         }
                         if (reposition) {
                             reposition = false;
-                            tile.style.left = Math.round((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
-                            tile.style.top = Math.round((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
+                            image.style.left = Math.round((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
+                            image.style.top = Math.round((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
                         }
                         keep.push(tile);
                     }
@@ -73,7 +73,7 @@ tl.extend(tl.Renderer.prototype, {
             for (r=me.renderedTiles.length-1; r>=0; --r) {
                 rendered = me.renderedTiles[r];
                 if (!~tl.indexOf(keep, rendered)) {
-                    me.el.removeChild(rendered);
+                    me.el.removeChild(rendered.image);
                 }
             }
             me.renderedTiles = keep;
