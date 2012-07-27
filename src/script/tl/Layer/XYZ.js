@@ -22,11 +22,6 @@ tl.extend(tl.Layer.XYZ.prototype, {
         var me = this,
             zoom = me.zoomForResolution(resolution),
             tileResolution = me.resolutions[zoom],
-            stretch = tileResolution / resolution,
-            tileSize = {
-                w: me.tileSize.w * stretch,
-                h: me.tileSize.h * stretch
-            },
             tileDelta = {
                 x: me.tileSize.w * tileResolution,
                 y: me.tileSize.h * tileResolution
@@ -40,8 +35,8 @@ tl.extend(tl.Layer.XYZ.prototype, {
                 y: me.tileOrigin.y - tileDelta.y * insertIndex.y
             },
             gridSize = {
-                w: Math.ceil((bounds.maxX - insertAt.x) / resolution / tileSize.w),
-                h: Math.ceil((insertAt.y - bounds.minY) / resolution / tileSize.h)
+                w: Math.ceil((bounds.maxX - insertAt.x) / tileDelta.x),
+                h: Math.ceil((insertAt.y - bounds.minY) / tileDelta.y)
             },
             data = [],
             tile, url;
@@ -71,9 +66,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
         return {
             data: data,
             insertAt: insertAt,
-            tileDelta: tileDelta,
-            tileSize: me.tileSize,
-            stretch: stretch
+            tileDelta: tileDelta
         };
     },
     zoomForResolution: function(resolution) {

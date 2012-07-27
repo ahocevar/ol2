@@ -19,7 +19,8 @@ tl.extend(tl.Renderer.prototype, {
         }
         me.animationId = tl.requestAnimationFrame(function() {        
             var fragment = document.createDocumentFragment(),
-                layerData, tile, image, offset, stretch,
+                layerData, tile, image, offsetX, offsetY,
+                insertAt, width, height, hash,
                 reposition = false,
                 keep = [];
             if (resolution !== me.resolution) {
@@ -39,11 +40,11 @@ tl.extend(tl.Renderer.prototype, {
             me.bounds = bounds;
             for (var l=0, ll=data.length; l<ll; ++l) {
                 layerData = data[l];
-                stretch = layerData.stretch;
-                offset = {
-                    x: layerData.insertAt.x - bounds.minX - me.left * resolution,
-                    y: bounds.maxY - layerData.insertAt.y - me.top * resolution
-                };
+                insertAt = layerData.insertAt;
+                offsetX = (insertAt.x - bounds.minX) / resolution - me.left;
+                offsetY = (bounds.maxY - insertAt.y) / resolution - me.top;
+                width =  layerData.tileDelta.x / resolution;
+                height = layerData.tileDelta.y / resolution;
                 for (var i=0, ii=layerData.data.length; i<ii; ++i) {
                     for (var j=0, jj=layerData.data[i].length; j<jj; ++j) {
                         tile = layerData.data[i][j];
@@ -53,16 +54,20 @@ tl.extend(tl.Renderer.prototype, {
                             fragment.appendChild(image);
                             reposition = true;
                         }
-                        if (stretch !== tile.stretch) {
-                            tile.stretch = stretch;
+                        hash = [resolution, insertAt.x, insertAt.y].join(',');
+                        if (hash !== tile.hash) {
+                            /* store resolution and insert offsets - if any is
+                            different, width and height need to be recalculated
+                            to avoid gaps between tiles */
+                            tile.hash = hash;
                             reposition = true;
-                            image.style.width = Math.ceil(layerData.tileSize.w * stretch) + 'px';
-                            image.style.height = Math.ceil(layerData.tileSize.h * stretch) + 'px';
+                            image.style.width = (Math.round(offsetX + (i+1) * width) - Math.round(offsetX + i * width)) + 'px';
+                            image.style.height = (Math.round(offsetY + (j+1) * height) - Math.round(offsetY + j * height)) + 'px';
                         }
                         if (reposition) {
                             reposition = false;
-                            image.style.left = Math.round((offset.x + i * layerData.tileDelta.x) / resolution) + 'px';
-                            image.style.top = Math.round((offset.y + j * layerData.tileDelta.y) / resolution) + 'px';                            
+                            image.style.left = Math.round(offsetX + i * width) + 'px';
+                            image.style.top = Math.round(offsetY + j * height) + 'px';                            
                         }
                         keep.push(tile);
                     }
