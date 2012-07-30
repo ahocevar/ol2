@@ -6,7 +6,7 @@ tl.Renderer = function(target) {
     this.renderedTiles = [];
 };
 tl.extend(tl.Renderer.prototype, {
-    div: null,
+    el: null,
     resolution: null,
     bounds: null,
     left: 0,
