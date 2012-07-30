@@ -84,10 +84,10 @@ tl.extend(tl.Layer.XYZ.prototype, {
     }
 });
 tl.Layer.XYZ.createImage = (function() {
-    var img = document.createElement("img");
-    img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-    img.style.position = "absolute";
-    img.galleryImg = "no";
+    var img = document.createElement('img');
+    img.style.position = 'absolute';
+    img.className = 'tile';
+    img.galleryImg = 'no';
     return function() {
         return img.cloneNode(false);
     };

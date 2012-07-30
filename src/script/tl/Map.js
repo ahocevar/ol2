@@ -101,6 +101,7 @@ tl.extend(tl.Map.prototype, {
         if (!arguments.length) {
             return this._zoom;
         } else {
+            this._renderer.abort();
             this._zoom = zoom;
             this.render();
             return this;

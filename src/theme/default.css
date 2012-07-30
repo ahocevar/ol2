@@ -6,10 +6,21 @@
 .tl.drag {
     cursor: move;
 }
-.unselectable {
+.tl.unselectable {
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
+}
+.tl .tile {
+    opacity: 0;
+    -webkit-transition: opacity 0.2s linear;
+    -moz-transition: opacity 0.2s linear;
+    -ms-transition: opacity 0.2s linear;
+    -o-transition: opacity 0.2s linear;
+    transition: opacity 0.2s linear;
+}
+.tl .tile.loaded {
+    opacity: inherit;
 }

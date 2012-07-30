@@ -11,6 +11,7 @@ tl.extend(tl.Renderer.prototype, {
     bounds: null,
     left: 0,
     top: 0,
+    timestamp: 0,
     animationId: null,
     render: function(data, bounds, resolution) {
         var me = this;
@@ -19,12 +20,15 @@ tl.extend(tl.Renderer.prototype, {
         }
         me.animationId = tl.requestAnimationFrame(function() {        
             var fragment = document.createDocumentFragment(),
-                layerData, tile, image, offsetX, offsetY,
-                insertAt, width, height, hash,
+                centerX = (bounds.maxX + bounds.minX) / 2,
+                centerY = (bounds.maxY + bounds.minY) / 2,
+                layerData, tileDelta, tile, image, offsetX, offsetY,
+                insertAt, width, height, hash, queue, distanceFromCenter,
                 reposition = false,
                 keep = [];
             if (resolution !== me.resolution) {
                 me.resolution = resolution;
+                me.bounds = null;
                 me.left = 0;
                 me.top = 0;
             } else {
@@ -37,20 +41,25 @@ tl.extend(tl.Renderer.prototype, {
                     "translate(" + me.left + "px," + me.top + "px)"},
                 {left: me.left + "px", top: me.top + "px"}
             );
-            me.bounds = bounds;
+            queue = [];
             for (var l=0, ll=data.length; l<ll; ++l) {
                 layerData = data[l];
+                tileDelta = layerData.tileDelta;
                 insertAt = layerData.insertAt;
                 offsetX = (insertAt.x - bounds.minX) / resolution - me.left;
                 offsetY = (bounds.maxY - insertAt.y) / resolution - me.top;
-                width =  layerData.tileDelta.x / resolution;
-                height = layerData.tileDelta.y / resolution;
+                width =  tileDelta.x / resolution;
+                height = tileDelta.y / resolution;
                 for (var i=0, ii=layerData.data.length; i<ii; ++i) {
                     for (var j=0, jj=layerData.data[i].length; j<jj; ++j) {
                         tile = layerData.data[i][j];
                         image = tile.image;
                         if (!~tl.indexOf(me.renderedTiles, tile)) {
-                            image.src = tile.url;
+                            distanceFromCenter = Math.sqrt(
+                                Math.pow(insertAt.x + (i+0.5) * tileDelta.x - centerX, 2) +
+                                Math.pow(insertAt.y - (j+0.5) * tileDelta.y - centerY, 2)
+                            );
+                            queue.push([tile, distanceFromCenter]);
                             fragment.appendChild(image);
                             reposition = true;
                         }
@@ -73,6 +82,7 @@ tl.extend(tl.Renderer.prototype, {
                     }
                 }
             }
+            me.loadTiles(queue);
             me.el.appendChild(fragment);
             var rendered, r;
             for (r=me.renderedTiles.length-1; r>=0; --r) {
@@ -81,8 +91,35 @@ tl.extend(tl.Renderer.prototype, {
                     me.el.removeChild(rendered.image);
                 }
             }
+            me.bounds = bounds;
             me.renderedTiles = keep;
             me.animationId = null;
         });
+    },
+    loadTiles: function(queue) {
+        queue.sort(this.sortTiles);
+        for (var i=0, ii=queue.length; i<ii; ++i) {
+            this.loadTile(queue[i][0], -~((i / 4) | 0) * 10);
+        }
+    },
+    sortTiles: function(a, b) {
+        return a[1] - b[1];
+    },
+    loadTile: function(tile, delay) {
+        tile.timestamp = new Date().getTime();
+        var me = this;
+        window.setTimeout(function() {
+            if (tile.timestamp >= me.timestamp) {
+                var image = tile.image;
+                tl.addEventListener(image, 'load', function onload() {
+                    tl.removeEventListener(image, 'load', onload);
+                    image.className += ' loaded';
+                });
+                tile.image.src = tile.url;
+            }
+        }, delay);
+    },
+    abort: function() {
+        this.timestamp = new Date().getTime();
     }
 });
