@@ -9,6 +9,7 @@ tl.Map = function(cfg) {
     div.style.position = "relative";
     // prevent default select and drag-drop
     tl.addEventListener(div, 'mousedown', tl.preventDefault);
+    tl.addEventListener(div, 'touchstart', tl.preventDefault);
     me.on("dragstart", function() {
         me.el.className += " drag";
     }, me);
