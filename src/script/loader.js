@@ -10,7 +10,8 @@
         "tl/Map.js",
         "tl/Renderer.js",
         "tl/Layer.js",
-        "tl/Layer/XYZ.js"
+        "tl/Layer/XYZ.js",
+        "tl/Layer/WMS.js"
     ];
     var markup = new Array(files.length);
     for (var i=0, ii=files.length; i<ii; ++i) {

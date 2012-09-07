@@ -1,5 +1,5 @@
 tl.Layer.XYZ = function(config) {
-    tl.Layer.prototype.constructor.apply(this, arguments);
+    tl.Layer.apply(this, arguments);
     this.url = config.url;
     this.tileCache = {};
     this.tileFIFO = [];
@@ -43,10 +43,7 @@ tl.extend(tl.Layer.XYZ.prototype, {
         for (var i=0, ii=gridSize.w; i<ii; ++i) {
             data[i] = [];
             for (var j=0, jj=gridSize.h; j<jj; ++j) {
-                url = this.url
-                    .replace("{x}", insertIndex.x + i)
-                    .replace("{y}", insertIndex.y + j)
-                    .replace("{z}", zoom);
+                url = this.getUrl(insertIndex.x + i, insertIndex.y + j, zoom);
                 if (~tl.indexOf(this.tileFIFO, url)) {
                     data[i][j] = this.tileCache[url];
                 } else {
@@ -68,6 +65,12 @@ tl.extend(tl.Layer.XYZ.prototype, {
             insertAt: insertAt,
             tileDelta: tileDelta
         };
+    },
+    getUrl: function(x, y, z) {
+        return this.url
+            .replace("{x}", x)
+            .replace("{y}", y)
+            .replace("{z}", z);
     },
     zoomForResolution: function(resolution) {
         var delta = Number.POSITIVE_INFINITY,
