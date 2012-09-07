@@ -37,7 +37,7 @@ tl.extend(tl.Renderer.prototype, {
                 {left: me.left + "px", top: me.top + "px"}
             );
             for (var l=0, ll=data.length; l<ll; ++l) {
-                me.processTiles(data[l], bounds, resolution, keep, queue);
+                me.processTiles(data[l], bounds, resolution, keep, queue, l);
             }
             var rendered, r;
             for (r=me.renderedTiles.length-1; r>=0; --r) {
@@ -52,7 +52,7 @@ tl.extend(tl.Renderer.prototype, {
             me.animationId = null;
         });
     },
-    processTiles: function(layerData, bounds, resolution, keep, queue) {
+    processTiles: function(layerData, bounds, resolution, keep, queue, index) {
         var me = this,
             tileDelta = layerData.tileDelta,
             insertAt = layerData.insertAt,
@@ -82,6 +82,7 @@ tl.extend(tl.Renderer.prototype, {
                     to avoid gaps between tiles */
                     tile.hash = hash;
                     reposition = true;
+                    image.style.zIndex = index;
                     image.style.width = (Math.round(offsetX + (i+1) * width) - Math.round(offsetX + i * width)) + 'px';
                     image.style.height = (Math.round(offsetY + (j+1) * height) - Math.round(offsetY + j * height)) + 'px';
                 }
