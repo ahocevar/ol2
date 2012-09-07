@@ -17,11 +17,14 @@
     <div id="map"></div>
     <script type="text/javascript">
     var map = new tl.Map("map");
-    var layer = new tl.Layer.XYZ({
+    map.add(new tl.Layer.XYZ({
         url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
-    });
-    map.add(layer);
-    map.center([48.2084, 16.3725]).zoom(13);
+    }));
+    map.add(new tl.Layer.WMS({
+        url: "http://demo.opengeo.org/geoserver/wms",
+        params: {LAYERS: 'topp:states'}
+    }));
+    map.center([40, -100]).zoom(3);
     </script>
 </body>
 </html>
