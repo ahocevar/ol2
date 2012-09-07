@@ -10,6 +10,7 @@ window.tl = {
                 target[p] = source[p];
             }
         }
+        return target;
     },
     bind: function(fn, scope) {
         if (Function.prototype.bind) {
