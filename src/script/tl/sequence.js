@@ -32,10 +32,13 @@ tl.sequence = {
                 dragged = undefined;
                 dragFn = tl.bind(drag, this);
                 dragendFn = tl.bind(dragend, this);
-                tl.addEventListener(document, 'mousemove', dragFn);
-                tl.addEventListener(document, 'touchmove', dragFn);
-                tl.addEventListener(document, 'mouseup', dragendFn);
-                tl.addEventListener(document, 'touchend', dragendFn);
+                if (evt.type === 'touchstart') {
+                  tl.addEventListener(document, 'touchmove', dragFn);
+                  tl.addEventListener(document, 'touchend', dragendFn);
+                } else {
+                  tl.addEventListener(document, 'mousemove', dragFn);
+                  tl.addEventListener(document, 'mouseup', dragendFn);
+                }
                 this.fire('dragstart', evt);
             }
         }
