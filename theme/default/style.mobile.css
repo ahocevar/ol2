@@ -49,8 +49,8 @@ div.olControlZoom a:hover {
     -o-transition: opacity 0.2s linear;
     transition: opacity 0.2s linear;
 }
-/* Turn on GPU support on devices that support it */
-.olMapViewport, .olMapViewport * {
+/* Turn on GPU support where available */
+.olMapViewport, .olMapViewport :not(g) {
     -webkit-transform: translate3d(0,0,0);
     -moz-transform: translate3d(0,0,0);
     -o-transform: translate3d(0,0,0);
