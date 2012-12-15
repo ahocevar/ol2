@@ -488,12 +488,12 @@ a.olControlZoomOut {
 }
 
 /* Turn on GPU support where available */
-.olMapViewport, .olMapViewport * {
-    -webkit-transform: translate3d(0, 0, 0);
-    -moz-transform: translate3d(0, 0, 0);
-    -o-transform: translate3d(0, 0, 0);
-    -ms-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
+.olMapViewport, .olMapViewport :not(g) {
+    -webkit-transform: translate3d(0,0,0);
+    -moz-transform: translate3d(0,0,0);
+    -o-transform: translate3d(0,0,0);
+    -ms-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
 }
 
 /* override any max-width image settings (e.g. bootstrap.css) */
