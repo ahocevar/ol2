@@ -14,12 +14,15 @@ html, body, #map {
 }
 
 /* Turn on GPU support where available */
-.olMapViewport, .olMapViewport :not(g) {
+.olMapViewport, .olMapViewport * {
     -webkit-transform: translate3d(0,0,0);
     -moz-transform: translate3d(0,0,0);
     -o-transform: translate3d(0,0,0);
     -ms-transform: translate3d(0,0,0);
     transform: translate3d(0,0,0);
+}
+.olLayerDiv svg * {
+    -webkit-transform: none;
 }
 
 .olLayerGrid .olTileImage {

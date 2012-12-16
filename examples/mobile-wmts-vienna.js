@@ -96,9 +96,9 @@ var map;
         theme: null,
         projection: "EPSG:3857",
         units: "m",
-        maxExtent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
-        maxResolution: 156543.0339,
-        numZoomLevels: 20,
+        restrictedExtent: [1799448.394855, 6124949.747770, 1848250.442089, 6162571.828177],
+        maxResolution: 38.21851413574219,
+        numZoomLevels: 8,
         tileManager: new OpenLayers.TileManager(),
         controls: [
             new OpenLayers.Control.Navigation({
@@ -133,6 +133,7 @@ var map;
 
     // Defaults for the WMTS layers
     var defaults = {
+        zoomOffset: 12,
         requestEncoding: "REST",
         matrixSet: "google3857",
         attribution: 'Datenquelle: Stadt Wien - <a href="http://data.wien.gv.at">data.wien.gv.at</a>'
