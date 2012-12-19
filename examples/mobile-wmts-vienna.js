@@ -102,10 +102,6 @@ var map;
         tileManager: new OpenLayers.TileManager(),
         controls: [
             new OpenLayers.Control.Navigation({
-                mouseWheelOptions: {
-                    cumulative: false,
-                    interval: 20
-                },
                 dragPanOptions: {
                     enableKinetic: {
                         deceleration: 0.02
