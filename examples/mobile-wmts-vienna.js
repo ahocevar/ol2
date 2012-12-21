@@ -103,9 +103,7 @@ var map;
         controls: [
             new OpenLayers.Control.Navigation({
                 dragPanOptions: {
-                    enableKinetic: {
-                        deceleration: 0.02
-                    }
+                    enableKinetic: true
                 },
                 zoomBoxEnabled: false
             }),
