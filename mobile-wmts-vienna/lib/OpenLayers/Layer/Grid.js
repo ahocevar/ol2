@@ -156,15 +156,22 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     backBufferLonLat: null,
 
     /**
-     * APIProperty: removeBackBufferDelay
-     * {Number} Delay in ms for removing the backbuffer when all tiles have
-     *     finished loading.  Usually a value of 0 works fine.  For slow mobile
-     *     devices, when using <singleTile> layers with big image sizes, a delay
-     *     of 40-50ms may help to avoid flickers after panning.  Default is 0.
-     *     If set, the layer's loadend event will also be delayed when a
-     *     backbuffer needs to be removed.
+     * Property: backBufferTimerId
+     * {Number} The id of the back buffer timer. This timer is used to
+     *     delay the removal of the back buffer, thereby preventing
+     *     flash effects caused by tile animation.
      */
-    removeBackBufferDelay: 0,
+    backBufferTimerId: null,
+
+    /**
+     * APIProperty: removeBackBufferDelay
+     * {Number} Delay for removing the backbuffer when all tiles have finished
+     *     loading. Can be set to 0 when no css opacity transitions for the
+     *     olTileImage class are used. Default is 0 for <singleTile> layers,
+     *     2500 for tiled layers. See <className> for more information on
+     *     tile animation.
+     */
+    removeBackBufferDelay: null,
 
     /**
      * APIProperty: className
@@ -195,6 +202,8 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
      *     transition: opacity 0.2s linear;
      * }
      * (end)
+     * In that case, to avoid flash effects, <removeBackBufferDelay>
+     *     should not be zero.
      */
     className: null,
     
@@ -247,6 +256,15 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     rowSign: null,
 
     /**
+     * Property: transitionendEvents
+     * {Array} Event names for transitionend
+     */
+    transitionendEvents: [
+        'transitionend', 'webkitTransitionEnd', 'otransitionend',
+        'oTransitionEnd'
+    ],
+
+    /**
      * Constructor: OpenLayers.Layer.Grid
      * Create a new grid layer
      *
@@ -260,7 +278,12 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         OpenLayers.Layer.HTTPRequest.prototype.initialize.apply(this, 
                                                                 arguments);
         this.grid = [];
+        this._removeBackBuffer = OpenLayers.Function.bind(this.removeBackBuffer, this);
 
+        if (this.removeBackBufferDelay === null) {
+            this.removeBackBufferDelay = this.singleTile ? 0 : 2500;
+        }
+        
         if (this.className === null) {
             this.className = this.singleTile ? 'olLayerGridSingleTile' :
                                                'olLayerGrid';
@@ -278,6 +301,25 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     setMap: function(map) {
         OpenLayers.Layer.HTTPRequest.prototype.setMap.call(this, map);
         OpenLayers.Element.addClass(this.div, this.className);
+    },
+
+    /**
+     * Method: removeMap
+     * Called when the layer is removed from the map.
+     *
+     * Parameters:
+     * map - {<OpenLayers.Map>} The map.
+     */
+    removeMap: function(map) {
+        if (this.moveTimerId !== null) {
+            window.clearTimeout(this.moveTimerId);
+            this.moveTimerId = null;
+        }
+        this.clearTileQueue();
+        if(this.backBufferTimerId !== null) {
+            window.clearTimeout(this.backBufferTimerId);
+            this.backBufferTimerId = null;
+        }
     },
 
     /**
@@ -345,6 +387,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         obj.gridResolution = null;
         // same for backbuffer and tile queue
         obj.backBuffer = null;
+        obj.backBufferTimerId = null;
         obj.loading = false;
 
         return obj;
@@ -557,13 +600,20 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
      * resolution - {Number} The resolution to transition to.
      */
     applyBackBuffer: function(resolution) {
+        if(this.backBufferTimerId !== null) {
+            this.removeBackBuffer();
+        }
         var backBuffer = this.backBuffer;
         if(!backBuffer) {
             backBuffer = this.createBackBuffer();
             if(!backBuffer) {
                 return;
             }
-            this.div.insertBefore(backBuffer, this.div.firstChild);
+            if (resolution === this.gridResolution) {
+                this.div.insertBefore(backBuffer, this.div.firstChild);
+            } else {
+                this.map.layerContainerDiv.insertBefore(backBuffer, this.map.baseLayer.div);
+            }
             this.backBuffer = backBuffer;
 
             // set some information in the instance for subsequent
@@ -635,14 +685,23 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
      * Remove back buffer from DOM.
      */
     removeBackBuffer: function() {
-        if(this.backBufferTimerId !== null) {
-            window.clearTimeout(this.backBufferTimerId);
-            this.backBufferTimerId = null;
+        if (this._transitionElement) {
+            for (var i=this.transitionendEvents.length-1; i>=0; --i) {
+                OpenLayers.Event.stopObserving(this._transitionElement,
+                    this.transitionendEvents[i], this._removeBackBuffer);
+            }
+            delete this._transitionElement;
         }
         if(this.backBuffer) {
-            this.div.removeChild(this.backBuffer);
+            if (this.backBuffer.parentNode) {
+                this.backBuffer.parentNode.removeChild(this.backBuffer);
+            }
             this.backBuffer = null;
             this.backBufferResolution = null;
+            if(this.backBufferTimerId !== null) {
+                window.clearTimeout(this.backBufferTimerId);
+                this.backBufferTimerId = null;
+            }
         }
     },
 
@@ -994,14 +1053,20 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
             });
             //if that was the last tile, then trigger a 'loadend' on the layer
             if (this.numLoadingTiles === 0) {
-                if (this.backBuffer) {
-                    var that = this;
-                    window.setTimeout(function() {
-                        that.onLoadEnd();
-                        that.removeBackBuffer();
-                    }, this.removeBackBufferDelay);
-                } else {
-                    this.onLoadEnd();
+                this.loading = false;
+                this.events.triggerEvent("loadend");
+                if(this.backBuffer) {
+                    this._transitionElement = tile.imgDiv;
+                    for (var i=this.transitionendEvents.length-1; i>=0; --i) {
+                        OpenLayers.Event.observe(this._transitionElement,
+                            this.transitionendEvents[i],
+                            this._removeBackBuffer);
+                    }
+                    // the removal of the back buffer is delayed to prevent
+                    // flash effects due to the animation of tile displaying
+                    this.backBufferTimerId = window.setTimeout(
+                        this._removeBackBuffer, this.removeBackBufferDelay
+                    );
                 }
             }
         };

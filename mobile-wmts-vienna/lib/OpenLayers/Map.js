@@ -720,8 +720,7 @@ OpenLayers.Map = OpenLayers.Class({
         if (this.panMethod) {
             this.panTween = new OpenLayers.Tween(this.panMethod);
         }
-        var canScale = !this.layerContainerDiv.style.left;
-        if (this.zoomMethod && canScale) {
+        if (this.zoomMethod && this.applyTransform.transform) {
             this.zoomTween = new OpenLayers.Tween(this.zoomMethod);
         }
     },
@@ -2086,67 +2085,6 @@ OpenLayers.Map = OpenLayers.Class({
     },
 
     /**
-     * Method: applyTransform
-     * Applies the transform described by x- and y-offset and scale to
-     * the <layerContainerDiv>. If no arguments are passed, any existing
-     * transform will be cleared.
-     *
-     * Parameters:
-     * dx - {Integer} x offset
-     * dy - {Integer} y offset
-     * scale - {Float} scale
-     */
-    applyTransform: function(dx, dy, scale) {
-        var style = this.layerContainerDiv.style;
-        if (style.transform !== undefined ||
-                style.WebkitTransform !== undefined ||
-                style.MozTransform !== undefined ||
-                style.OTransform !== undefined ||
-                style.msTransform !== undefined) {
-            var transform = "";
-            if (arguments.length !== 0) {
-                transform = "translate(" + dx + "px, " + dy + "px) " +
-                    "scale(" + scale + ")";
-            }
-            style.transform = transform;
-            style.WebkitTransform = transform;
-            style.MozTransform = transform;
-            style.OTransform = transform;
-            style.msTransform = transform;
-        } else {
-            var containerOrigin = this.layerContainerOriginPx,
-                containerCenter = {
-                    x: containerOrigin.x + 50,
-                    y: containerOrigin.y + 50
-                },
-                scale = scale || 1, dx = dx || 0, dy = dy || 0;
-            style.width = Math.round(100 * scale) + "px";
-            style.height = Math.round(100 * scale) + "px";
-            style.left = Math.round(containerCenter.x - 50 * scale + dx) + "px";
-            style.top = Math.round(containerCenter.y - 50 * scale + dy) + "px";
-        }
-        if (arguments.length === 0) {
-            // Force a reflow when resetting the transform. This is to work
-            // around an issue occuring in iOS + OSX Safari.
-            //
-            // See https://github.com/openlayers/openlayers/pull/351.
-            //
-            // Without a reflow setting the layer container div's top left
-            // style properties to "0px" - as done in Map.moveTo when zoom
-            // is changed - won't actually correctly reposition the layer
-            // container div.
-            //
-            // Also, we need to use a statement that the Google Closure
-            // compiler won't optimize away.
-            try {
-                this.div.clientWidth = this.div.clientWidth;
-            } catch(e) {
-                // this fails in IE
-            }
-        }
-    },
-    
-    /**
      * Method: isValidZoomLevel
      * 
      * Parameters:
@@ -2467,6 +2405,7 @@ OpenLayers.Map = OpenLayers.Class({
                         xy = {x: size.w / 2, y: size.h / 2};
                     }
                     map.zoomTween.start(start, end, map.zoomDuration, {
+                        minFrameRate: 50, // don't spend much time zooming
                         callbacks: {
                             eachStep: function(data) {
                                 var containerOrigin = map.layerContainerOriginPx,
